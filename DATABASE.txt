@@ -1,0 +1,76 @@
+CREATE DATABASE eventapp;
+use eventapp;
+
+CREATE TABLE `euser` (
+  `firstName` varchar(255) NOT NULL,
+  `lastName` varchar(255) NOT NULL,
+  `phonenb` varchar(15) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `joindate` date NOT NULL,
+  PRIMARY KEY (`username`),
+  CONSTRAINT `euser_chk_3` CHECK (regexp_like(`email`,_utf8mb4'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'))
+);
+
+CREATE TABLE `event` (
+  `Eventname` varchar(250) NOT NULL,
+  `date` date NOT NULL,
+  `time` time NOT NULL,
+  `EventBudget` varchar(255) DEFAULT NULL,
+  `phoneNumber` varchar(15) DEFAULT NULL,
+  `venuename` varchar(250) NOT NULL,
+  `plannerusername` varchar(250) NOT NULL,
+  `subnum` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`Eventname`),
+  KEY `fk_event_planner` (`plannerusername`),
+  KEY `subnum` (`subnum`),
+  KEY `event_ibfk_2` (`venuename`),
+  CONSTRAINT `event_ibfk_2` FOREIGN KEY (`venuename`) REFERENCES `venue` (`venuename`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_event_planner` FOREIGN KEY (`plannerusername`) REFERENCES `euser` (`username`),
+  CONSTRAINT `event_chk_2` CHECK ((`time` between '00:00:00' and '23:59:59'))
+);
+
+CREATE TABLE `services` (
+  `serviceID` int NOT NULL AUTO_INCREMENT,
+  `serviceName` varchar(255) NOT NULL,
+  `eventname` varchar(250) NOT NULL,
+  `cost` decimal(10,2) DEFAULT '0.00',
+  `contactInfo` varchar(255) DEFAULT NULL,
+  `details` text,
+  PRIMARY KEY (`serviceID`),
+  KEY `services_ibfk_1` (`eventname`),
+  CONSTRAINT `services_ibfk_1` FOREIGN KEY (`eventname`) REFERENCES `event` (`Eventname`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE `subscription` (
+  `eventName` varchar(250) NOT NULL,
+  `userName` varchar(250) NOT NULL,
+  `subscribeDate` date NOT NULL DEFAULT (curdate()),
+  `subscription_id` int NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`subscription_id`),
+  KEY `fk_event` (`eventName`),
+  KEY `fk_user` (`userName`),
+  CONSTRAINT `fk_event` FOREIGN KEY (`eventName`) REFERENCES `event` (`Eventname`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_user` FOREIGN KEY (`userName`) REFERENCES `euser` (`username`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE `venue` (
+  `venuename` varchar(250) NOT NULL,
+  `location` varchar(255) NOT NULL,
+  `capacity` int NOT NULL,
+  `rental_cost` decimal(10,2) NOT NULL,
+  `phone_number` varchar(15) NOT NULL,
+  `services_offered` varchar(255) DEFAULT NULL,
+  `place_description` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`venuename`)
+);
+
+CREATE TABLE `registers` (
+  `username` varchar(250) DEFAULT NULL,
+  `eventName` varchar(250) DEFAULT NULL,
+  UNIQUE KEY `username` (`username`,`eventName`),
+  KEY `eventName` (`eventName`),
+  CONSTRAINT `registers_ibfk_1` FOREIGN KEY (`username`) REFERENCES `euser` (`username`),
+  CONSTRAINT `registers_ibfk_2` FOREIGN KEY (`eventName`) REFERENCES `event` (`Eventname`)
+);
